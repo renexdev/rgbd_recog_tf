@@ -55,18 +55,7 @@ def load_tf_model(tag):
 '''
 
 
-def convert(tag, path):
-    '''
-    var_lst = load_tf_model(tag)
-    saver = tf.train.Saver()
-    sess = tf.Session()
-    init_op = tf.initialize_all_variables()
-    sess.run(init_op)
-    ipdb.set_trace()
-    saver.restore(sess, path)
-    '''
-
-
+def convert(path, filename):
     sess = tf.Session()
     saver = tf.train.import_meta_graph(path+'.meta')
     saver.restore(sess, path)
@@ -76,29 +65,16 @@ def convert(tag, path):
 
 
     model = dict()
-    tag += '_'
-    model[tag+'conv1W'] = sess.run(var_lst[0])
-    model[tag+'conv1b'] = sess.run(var_lst[1])
-    model[tag+'conv2W'] = sess.run(var_lst[2])
-    model[tag+'conv2b'] = sess.run(var_lst[3])
-    model[tag+'conv3W'] = sess.run(var_lst[4])
-    model[tag+'conv3b'] = sess.run(var_lst[5])
-    model[tag+'conv4W'] = sess.run(var_lst[6])
-    model[tag+'conv4b'] = sess.run(var_lst[7])
-    model[tag+'conv5W'] = sess.run(var_lst[8])
-    model[tag+'conv5b'] = sess.run(var_lst[9])
-    model[tag+'fc6W'] = sess.run(var_lst[10])
-    model[tag+'fc6b'] = sess.run(var_lst[11])
-    model[tag+'fc7W'] = sess.run(var_lst[12])
-    model[tag+'fc7b'] = sess.run(var_lst[13])
-    model[tag+'fc8W'] = sess.run(var_lst[14])
-    model[tag+'fc8b'] = sess.run(var_lst[15])
+    model['conv1'] = [sess.run(var_lst[0]), sess.run(var_lst[1])]
+    model['conv2'] = [sess.run(var_lst[2]), sess.run(var_lst[3])]
+    model['conv3'] = [sess.run(var_lst[4]), sess.run(var_lst[5])]
+    model['conv4'] = [sess.run(var_lst[6]), sess.run(var_lst[7])]
+    model['conv5'] = [sess.run(var_lst[8]), sess.run(var_lst[9])]
+    model['fc6'] = [sess.run(var_lst[10]), sess.run(var_lst[11])]
+    model['fc7'] = [sess.run(var_lst[12]), sess.run(var_lst[13])]
+    model['fc8'] = [sess.run(var_lst[14]), sess.run(var_lst[15])]
 
-    #np.save(os.path.join(cfg.DIR_MODEL, tag+'model.npy'), model)
-    if tag == 'rgb_':
-        np.save(cfg.PTH_RGB_MODEL, model)
-    elif tag == 'dep_':
-        np.save(cfg.PTH_DEP_MODEL, model)
+    np.save(filename, model)
     return
 
 
@@ -106,9 +82,9 @@ def convert(tag, path):
 if __name__ == '__main__':
     print 'Converting RGB model...'
     with tf.Graph().as_default():
-        convert('rgb', os.path.join(cfg.DIR_BESTCKPT, 'rgb-best'))
+        convert(os.path.join(cfg.DIR_BESTCKPT, 'rgb-best'), cfg.PTH_RGB_MODEL)
 
     print 'Converting Dep model...'
     with tf.Graph().as_default():
-        convert('dep', os.path.join(cfg.DIR_BESTCKPT, 'dep-best'))
+        convert(os.path.join(cfg.DIR_BESTCKPT, 'dep-best'), cfg.PTH_DEP_MODEL)
 

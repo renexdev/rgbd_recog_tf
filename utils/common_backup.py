@@ -63,7 +63,6 @@ def early_stopping(old_val, new_val, patience_count, expect_greater,
 
 
 #data loader--------------------------------------------------------------------------------------
-'''
 def preprocess(images):
     # load mean img
     mean_img = np.load(cfg.PTH_MEAN_IMG)
@@ -76,17 +75,12 @@ def preprocess(images):
     lim = 10
 
     return
-'''
 
 
 def load_images(lst, data_dir, ext, ccrop):
     # load mean img
-    if ext == cfg.EXT_RGB: 
-        mean_img = np.load(cfg.PTH_RGB_MEAN)
-    elif ext == cfg.EXT_D:
-        mean_img = np.load(cfg.PTH_DEP_MEAN)
-    #mean_img = np.load(cfg.PTH_MEAN_IMG)
-    #mean_img = mean_img.transpose(1,2,0) # mean_img has the shape of (color,width,height)
+    mean_img = np.load(cfg.PTH_MEAN_IMG)
+    mean_img = mean_img.transpose(1,2,0) # mean_img has the shape of (color,width,height)
 
     N = len(lst)
     if ccrop == True:
@@ -99,11 +93,13 @@ def load_images(lst, data_dir, ext, ccrop):
     for i in range(N):
         # read image
         img = cv2.imread(os.path.join(data_dir, lst[i]+ext))
-        #img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)  # opencv read data as BGR instead of RGB
+        img = cv2.cvtColor(img, cv2.COLOR_BGR2RGB)  # opencv read data as BGR instead of RGB
+        #FIXME: convert to grayscale
+        #foo = cv2.cvtColor(img, cv2.COLOR_BGR2GRAY)
+        #img = np.dstack((foo,foo,foo))
 
         # mean removal
         img = img.astype(np.float32) - mean_img.astype(np.float32)
-        #img = img.astype(np.float32)
 
         if ccrop == True:
             img = central_crop(img)
@@ -121,11 +117,11 @@ def load_images(lst, data_dir, ext, ccrop):
             lim += 10
     return images, labels
 
-'''
+
 def load_pairs(lst, data_dir, classes, crop):
     # load mean img
-    mean_rgb = np.load(cfg.PTH_RGB_MEAN)
-    mean_dep = np.load(cfg.PTH_DEP_MEAN)
+    mean_img = np.load(cfg.PTH_MEAN_IMG)
+    mean_img = mean_img.transpose(1,2,0)
 
     N = len(lst)
     all_rgb = np.zeros((N,cfg.IMG_S,cfg.IMG_S,3), dtype=np.uint8)
@@ -135,14 +131,13 @@ def load_pairs(lst, data_dir, classes, crop):
     lim = 10
     for i in range(N):
         # read image
+        # FIXME: BGR2RGB
         rgb = cv2.imread(os.path.join(data_dir, lst[i]+cfg.EXT_RGB))
-        rgb = cv2.cvtColor(rgb, cv2.COLOR_BGR2RGB)
         dep = cv2.imread(os.path.join(data_dir, lst[i]+cfg.EXT_D))
-        dep = cv2.cvtColor(dep, cv2.COLOR_BGR2RGB)
 
         # mean removal
-        rgb = rgb.astype(np.float32) - mean_rgb.astype(np.float32)
-        dep = dep.astype(np.float32) - mean_dep.astype(np.float32)
+        rgb = rgb.astype(np.float32) - mean_img.astype(np.float32)
+        dep = dep.astype(np.float32) - mean_img.astype(np.float32)
 
         # crop
         if crop == 'random':
@@ -172,33 +167,65 @@ def load_pairs(lst, data_dir, classes, crop):
             print '    Loaded %d / %d' % (i, N)
             lim += 10
     return all_rgb, all_dep, labels
+
+
+def load_feat(lst, data_dir, ext, classes):
+    N = len(lst)
+    features = np.zeros((N,4096), dtype=np.float32)
+    labels = np.zeros((N, len(classes)), dtype=np.float32)
+    for i in range(N):
+        pth = os.path.join(data_dir,lst[i]+ext)
+        f = np.load(pth)
+        features[i] = f
+        labels[i, parse_label(lst[i], classes)] = 1.0
+    return features, labels
+
+
+'''
+from preprocess_4d import resize_dep
+def load_4d(lst, rgb_dir, dep_dir, process_dep=False):
+    N = len(lst)
+    rgbds = np.zeros((N, cfg.IMG_S, cfg.IMG_S, 4), dtype=np.uint8)
+    labels = np.zeros((N, len(cfg.CLASSES)), dtype=np.float32)
+
+    lim = 10
+    for i in range(N):
+        # read rgbd
+        rgb = cv2.imread(os.path.join(rgb_dir, lst[i]+cfg.EXT_RGB), IMREAD_COLOR)
+        dep = cv2.imread(os.path.join(dep_dir, lst[i]+cfg.EXT_D), IMREAD_UNCHANGED)
+        dep = resize_dep(dep).astype(np.float32)
+
+        if process_dep:
+            dep = (dep - cfg.DEP_MIN)*1.0 / cfg.DEP_MAX * 255
+            dep = dep.astype(np.uint8)
+            #l = np.sum((dep>255).astype(np.int32))
+            #if l > 0: print l, dep.max() #TODO: remove this line
+            dep = np.clip(255, 0, dep)
+
+        rgbd = np.concatenate((rgb, dep[..., np.newaxis]), axis=2)
+        rgbds[i] = rgbd[np.newaxis,...]
+
+        #rgbd = np.load(os.path.join(data_dir, lst[i]+cfg.EXT_4D))
+        #rgbd[:,:,3] = (rgbd[:,:,3] - cfg.DEP_MIN) / cfg.DEP_MAX * 255.0 # normalize to 0..255
+        #rgbd = np.clip(rgbd, 0, 255)
+        #rgbds[i] = rgbd[np.newaxis, ...]
+
+        # parse label
+        labels[i, parse_label(lst[i], cfg.CLASSES)] = 1.0
+
+        # check progress
+        percent = int(100.0 * i / N)
+        if percent == lim:
+            print '    Loaded %d / %d' %(i, N)
+            lim += 10
+        
+    return rgbds, labels
 '''
 
 
 #image helpers------------------------------------------------------------------------------------
 def parse_label(x, classes):
     return classes.index(x.split('/')[0])
-
-
-'''
-def _crop_from_top_left(images, u, v, new_size):
-    if images.ndim == 3: # single image
-        images = images[u:new_size+u, v:new_size+v, :]
-    elif images.ndim == 4: # batch of images
-        images = images[:, u:new_size+u, v:new_size+v, :]
-    return images
-
-
-def random_crop_pair(imgs1, imgs2):
-    assert len(imgs1) == len(imgs2)
-    old_size = imgs1.shape[1]
-    new_size = cfg.IMG_S
-    r = old_size - new_size
-    u = np.random.randint(r+1)
-    v = np.random.randint(r+1)
-    imgs1 = _crop_from_top_left(imgs1, u, v, new_size)
-    imgs2 = _crop_from_top_left(imgs2, u, v, new_size)
-    return imgs1, imgs2
 
 
 def random_crop(images):
@@ -209,57 +236,14 @@ def random_crop(images):
     r = old_size - new_size
     u = np.random.randint(r+1)
     v = np.random.randint(r+1)
-    images = _crop_from_top_left(images, u, v, new_size)
-    return images
-'''
-
-
-def random_crop_pair(images1, images2):
-    assert images1.shape == images2.shape
-    old_size = images1.shape[1]
-    new_size = cfg.IMG_S
-
-    if images1.ndim == 3: # single image
-        u, v = _rand_top_left(old_size, new_size)
-        new_images1 = images1[u:u+new_size, v:v+new_size, :]
-        new_images2 = images2[u:u+new_size, v:v+new_size, :]
-    elif images1.ndim == 4: # multiple images
-        N = len(images1)
-        new_images1 = np.zeros((N, new_size, new_size, 3))
-        new_images2 = np.zeros((N, new_size, new_size, 3))
-        for i in range(N):
-            u, v = _rand_top_left(old_size, new_size)
-            new_images1[i] = images1[i, u:u+new_size, v:v+new_size, :]
-            new_images2[i] = images2[i, u:u+new_size, v:v+new_size, :]
-   
-    new_images1 = random_flip(new_images1)
-    new_images2 = random_flip(new_images2)
-    return new_images1, new_images2
-
-
-def _rand_top_left(old_size, new_size):
-    r = old_size - new_size
-    u = np.random.randint(r+1)
-    v = np.random.randint(r+1)
-    return u, v
-
-
-def random_crop(images):
-    old_size = images.shape[1]
-    new_size = cfg.IMG_S
-
     if images.ndim == 3: # single image
-        u, v = _rand_top_left(old_size, new_size)
-        new_images = images[u:u+new_size, v:v+new_size, :]
-    elif images.ndim == 4: # multiple images
-        N = len(images)
-        new_images = np.zeros((N, new_size, new_size, 3))
-        for i in range(N):
-            u, v = _rand_top_left(old_size, new_size)
-            new_images[i] = images[i, u:u+new_size, v:v+new_size, :]
-   
-    new_images = random_flip(new_images)
-    return new_images
+        images = images[u:new_size+u, v:new_size+v, :]
+    elif images.ndim == 4: # batch of images
+        images = images[:, u:new_size+u, v:new_size+v, :]
+        #N = len(images)
+        #i = np.random.randint(N)
+        #images[i,:,:,:] = images[i,:,::-1,:]
+    return images
 
 
 def central_crop(images):
@@ -274,9 +258,6 @@ def central_crop(images):
 
 
 def random_flip(images):
-    N = len(images) / 10 #TODO: make it more flexible?
-
-    # random flip the first few images (images are fed in randomly already)
-    for i in range(N):
-        images[i,:,:,:] = images[i,:,::-1,:]
+    ids = np.random.choice(len(images), len(images)/20)
+    images[ids,:,:,:] = images[ids,:,::-1,:]
     return images

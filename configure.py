@@ -11,11 +11,12 @@ DIR_BESTCKPT    = 'bestckpt'
 DIR_SCORE       = 'score'
 
 DIR_DATA_RAW      = os.path.join(DIR_HOME, 'data', 'rgbd-dataset')
-DIR_DATA          = os.path.join(DIR_HOME, 'data', 'rgbd-dataset-processed')
+DIR_DATA_NOFRINGE = os.path.join(DIR_HOME, 'data', 'rgbd-dataset-processed-nofringe')
+DIR_DATA_FRINGE   = os.path.join(DIR_HOME, 'data', 'rgbd-dataset-processed-fringe')
 DIR_DATA_MASKED   = os.path.join(DIR_HOME, 'data', 'rgbd-dataset-processed-masked')
 DIR_DATA_4D       = os.path.join(DIR_HOME, 'data', 'rgbd-dataset-processed4d')
-DIR_DATA_EVAL_RAW = os.path.join(DIR_HOME, 'data', 'rgbd-dataset_eval')
-DIR_DATA_EVAL     = os.path.join(DIR_HOME, 'data', 'rgbd-dataset_eval-processed')
+#DIR_DATA_EVAL_RAW = os.path.join(DIR_HOME, 'data', 'rgbd-dataset_eval')
+#DIR_DATA_EVAL     = os.path.join(DIR_HOME, 'data', 'rgbd-dataset_eval-processed')
 
 N_FEAT_RAND = 5
 DIR_DATA_MASKED_FEAT = [os.path.join(DIR_HOME, 'data', 'rgbd-feat-masked-'+str(i+1)) for i in range(N_FEAT_RAND)]
@@ -37,11 +38,11 @@ PTH_TRIAL_SPLIT      = os.path.join(DIR_LST, 'trial_split.npy')
 # Model
 PTH_WEIGHT_ALEX = os.path.join(DIR_MODEL, 'bvlc_alexnet.npy') # AlexNet's pretrained model
 PTH_MEAN_IMG    = os.path.join(DIR_MODEL, 'ilsvrc_2012_mean.npy') # mean image of imagenet dataset
+PTH_RGB_MEAN    = os.path.join(DIR_MODEL, 'rgb_mean_BGR.npy')
+PTH_DEP_MEAN    = os.path.join(DIR_MODEL, 'dep_mean_BGR.npy')
 PTH_RGB_MODEL   = os.path.join(DIR_MODEL, 'rgb_model.npy') # rgb model trained in phase 1
 PTH_DEP_MODEL   = os.path.join(DIR_MODEL, 'dep_model.npy') # depth model trained in phase 1
 PTH_FUS_MODEL   = os.path.join(DIR_MODEL, 'fus_model.npy') # fusion model trained in phase 2
-PTH_RGBD_MEAN   = os.path.join(DIR_MODEL, 'rgbd_dataset_mean.npy')
-PTH_RGBD_VAR    = os.path.join(DIR_MODEL, 'rgbd_dataset_var.npy')
 
 # Classes
 CLASSES         = open(PTH_DICT, 'r').read().splitlines()
@@ -50,13 +51,10 @@ CLASSES         = open(PTH_DICT, 'r').read().splitlines()
 N_TRIALS        = 10
 IMG_S           = 227 # size of a square image
 IMG_RAW_S       = 256
-#DEP_MIN         = 0.0
-#DEP_MAX         = 4000.0 # because of Kinect
 
 # Extensions of RGBD dataset
 EXT_RGB         = '_crop.png'
 EXT_D           = '_depthcrop.png'
 EXT_MASK        = '_maskcrop.png'
-#EXT_4D          = '.npy'
 EXT_RGB_FEAT    = '_crop.npy'
 EXT_D_FEAT      = '_depthcrop.npy'

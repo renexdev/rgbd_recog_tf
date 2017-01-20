@@ -36,7 +36,7 @@ def main(pth):
     plt.figure()
     plt.imshow(cm)
     plt.colorbar()
-    plt.title('Confusion matrix: '+pth)
+    plt.title('Confusion matrix: ')
 
     plt.figure()
     ic = [cm[i,i] for i in range(n_classes)] # in-class accuracy

@@ -131,15 +131,16 @@ def loss(score, labels, tag):
     """
     tag += '_'
 
-    prob = tf.nn.softmax(score, name='prob')
-    logits = tf.log(tf.clip_by_value(prob, 1e-10, 1.0), name='logits')
-    L = -tf.reduce_sum(labels * logits, reduction_indices=1)
-    loss = tf.reduce_sum(L, reduction_indices=0, name='loss')
-    #loss = tf.reduce_sum(tf.nn.softmax_cross_entropy_with_logits(score, labels), name='loss')
+    #prob = tf.nn.softmax(score, name='prob')
+    #logits = tf.log(tf.clip_by_value(prob, 1e-10, 1.0), name='logits')
+    #L = -tf.reduce_sum(labels * logits, reduction_indices=1)
+    #loss = tf.reduce_sum(L, reduction_indices=0, name='loss')
+    loss = tf.reduce_sum(tf.nn.softmax_cross_entropy_with_logits(score, labels), name='loss')
 
     # regularize weights
     layers = ['conv1','conv2','conv3','conv4','conv5','fc6','fc7','fc8']
     shapes = [[11,11,3,96],[5,5,48,256],[3,3,256,384],[3,3,192,384],[3,3,192,256],[9216,4096],[4096,4096],[4096,FLAGS.n_classes]]
+
     regularizers = 0
     for i in range(len(layers)):
         with tf.variable_scope(tag+layers[i]):

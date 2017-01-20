@@ -79,6 +79,7 @@ def process_multi(dir_input, dir_output, masked):
 
         # retrieve all objects in the category
         objects = os.listdir(dir_category)
+        objects.sort()
         for obj in objects:
             if obj.startswith('.'): continue
             dir_obj = os.path.join(dir_category, obj)
@@ -111,7 +112,13 @@ def process_multi(dir_input, dir_output, masked):
                     dep *= mask
 
                 # scale
-                rgb = scaleit3(rgb)
+                #rgb = scaleit3(rgb)
+                b = scaleit_experimental(rgb[:,:,0])
+                g = scaleit_experimental(rgb[:,:,1])
+                r = scaleit_experimental(rgb[:,:,2])
+                rgb = np.dstack((b,g,r))
+
+
                 dep = scaleit_experimental(dep)
                 dep = cv2.applyColorMap(dep, cv2.COLORMAP_JET)
 
@@ -122,9 +129,9 @@ def process_multi(dir_input, dir_output, masked):
 
 
 if __name__ == '__main__':
-    #dir_input = cfg.DIR_DATA_RAW
-    #dir_output = cfg.DIR_DATA
-    #masked = False
+    dir_input = cfg.DIR_DATA_RAW
+    dir_output = cfg.DIR_DATA
+    masked = False
 
 
     #dir_input = cfg.DIR_DATA_EVAL_RAW
@@ -132,9 +139,9 @@ if __name__ == '__main__':
     #masked = False
 
 
-    dir_input = cfg.DIR_DATA_RAW
-    dir_output = cfg.DIR_DATA_MASKED
-    masked = True
+    #dir_input = cfg.DIR_DATA_RAW
+    #dir_output = cfg.DIR_DATA_MASKED
+    #masked = True
 
     print 'Input directory: %s' % dir_input
     print 'Output directory: %s' % dir_output

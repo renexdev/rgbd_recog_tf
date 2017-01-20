@@ -79,6 +79,6 @@ def evaluation(score, labels):
     correct = tf.nn.in_top_k(score, id_labels, 1)
 
     # add to summary
-    tf.histogram_summary('score', score)
-    tf.histogram_summary('ground truth', id_labels)
+    #tf.histogram_summary('score', score)
+    #tf.histogram_summary('ground truth', id_labels)
     return tf.reduce_sum(tf.cast(correct, tf.int32))
